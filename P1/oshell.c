@@ -69,3 +69,45 @@ int checkCmd(char** arguments){
   }
   return 0;
 }
+
+/* -----------------------------------------------------------------------------
+ * Call the function corresponding to the command given by the user.
+ *
+ * PARAMETERS
+ * arguments    represents an array of string which contains the command ([0])
+ *              and its arguments ([1], [2], ... [255]).
+ * copies       specifies the number of times the execution has to be made
+ * parallel     specifies if the execution is parallel or sequential
+ *
+ * RETURN
+ * metadata     struct defining the commands that have been executed
+ * ---------------------------------------------------------------------------*/
+metadata* executeCmd(char** arguments, int copies, int parallel){
+  metadata* meta = malloc(sizeof(metadata)*10);
+  // cd
+  if(!strcmp(arguments[0], "cd")){
+    // Sequential execution
+    if(!parallel){
+      for(int i = 0; i < copies; i++){
+        meta[i] = cd(arguments);
+      }
+    }
+    // Parallel execution
+    else{
+
+    }
+  }
+  // loadmem
+  else if(!strcmp(arguments[0], "loadmem")){
+
+  }
+  // memdump
+  else if(!strcmp(arguments[0], "memdump")){
+
+  }
+  // showlist
+  else{
+
+  }
+  return meta;
+}

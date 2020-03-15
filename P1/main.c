@@ -26,6 +26,11 @@ int main() {
 
     int copies;
     int parallel = false;
+    metadata* meta = malloc(sizeof(metadata) * MAX_DATA);
+    if(!meta){
+      printf("Error while allocating metadata structure.\n");
+      return -1;
+    }
 
     do{
         printf("OShell> ");
@@ -46,6 +51,7 @@ int main() {
           continue;
         }
         else if(check == -1){
+          free(meta);
           printf("See you soon!\n");
           break;
         }
@@ -63,6 +69,9 @@ int main() {
         }
 
         // Add another stuff here ...
+
+        // Execute the specified command
+        executeCmd(arguments, copies, parallel);
 
     }while(true);
 }
