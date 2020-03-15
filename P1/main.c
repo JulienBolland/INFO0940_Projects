@@ -37,11 +37,12 @@ int main() {
         parseCmdLine(line, arguments);
 
         // Add some stuff here ...
-        
+
+        // Check the specified command
         int check = checkCmd(arguments);
-        if(check == 1){
-          printf("The specified command is not handled by OShell. Please refer \
-          to the documentation.\n");
+        if(check == 0){
+          printf("The specified command is not handled by OShell. ");
+          printf("Please refer to the documentation.\n");
           continue;
         }
         else if(check == -1){
