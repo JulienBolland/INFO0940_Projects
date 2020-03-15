@@ -1,7 +1,7 @@
 /*
-Group: XX
-Member1: ID - LastName - FirstName
-Member2: ID - LastName - FirstName
+Group: 26
+Member1: s161622 - Bolland - Julien
+Member2: s162425 - Gilson - Maxence
 */
 
 #include "oshell.h"
@@ -12,7 +12,7 @@ Member2: ID - LastName - FirstName
  *
  * PARAMETERS
  * line         represents the line as a single string (unparsed).
- * arguments    represents an array of string which contains the command ([0]) 
+ * arguments    represents an array of string which contains the command ([0])
  *              and its arguments ([1], [2], ... [255]).
  *
  * RETURN
@@ -20,7 +20,7 @@ Member2: ID - LastName - FirstName
  * ---------------------------------------------------------------------------*/
 void parseCmdLine(char* line, char** arguments) {
     int i = 0;
-    
+
     line[strlen(line) - 1] = '\0';
     arguments[i] = strtok(line, " ");
     while (arguments[i++] && i < MAX_ARGS) {
@@ -40,7 +40,7 @@ void parseCmdLine(char* line, char** arguments) {
  * ---------------------------------------------------------------------------*/
 char readCharInput(void) {
     char c = getchar();
-    
+
     while(getchar() != '\n');
     return c;
 }

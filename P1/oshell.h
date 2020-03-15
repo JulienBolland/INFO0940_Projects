@@ -1,7 +1,7 @@
 /*
-Group: XX
-Member1: ID - LastName - FirstName
-Member2: ID - LastName - FirstName
+Group: 26
+Member1: s161622 - Bolland - Julien
+Member2: s162425 - Gilson - Maxence
 */
 
 #ifndef oshell_h
