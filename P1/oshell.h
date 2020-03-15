@@ -12,11 +12,15 @@ Member2: s162425 - Gilson - Maxence
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 static const int MAX_CMD_SIZE = 256;                // DO NOT MODIFY
 static const int MAX_ARGS = 256;                    // DO NOT MODIFY
 
 char readCharInput(void);                           // DO NOT MODIFY
 void parseCmdLine(char* line, char** arguments);    // DO NOT MODIFY
+
+int checkCmd(char** arguments);
+
 
 #endif /* oshell_h */

@@ -37,6 +37,17 @@ int main() {
         parseCmdLine(line, arguments);
 
         // Add some stuff here ...
+        
+        int check = checkCmd(arguments);
+        if(check == 1){
+          printf("The specified command is not handled by OShell. Please refer \
+          to the documentation.\n");
+          continue;
+        }
+        else if(check == -1){
+          printf("See you soon!\n");
+          break;
+        }
 
         // Number of times to execute a specific command
         do {

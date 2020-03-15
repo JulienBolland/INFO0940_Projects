@@ -47,3 +47,25 @@ char readCharInput(void) {
 
 //-----------------------------------------------------------------------------
 // Here you can add your creepy stuff...
+
+/* -----------------------------------------------------------------------------
+ * Check whether the command stored in 'arguments' is handled by OShell.
+ *
+ * PARAMETERS
+ * arguments    represents an array of string which contains the command ([0])
+ *              and its arguments ([1], [2], ... [255]).
+ *
+ * RETURN
+ * int     1 if the command is handled, 0 otherwise and -1 if it is the exit
+ *         command.
+ * ---------------------------------------------------------------------------*/
+int checkCmd(char** arguments){
+  if(!strcmp(arguments[0], "cd")||!strcmp(arguments[0], "memdump")|| \
+     !strcmp(arguments[0], "loadmem")||!strcmp(arguments[0], "showlist")){
+       return 1;
+  }
+  else if(!strcmp(arguments[0], "exit")){
+    return -1;
+  }
+  return 0;
+}
