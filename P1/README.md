@@ -13,4 +13,5 @@ Where `valgrind` is used for debugging.
 
 ## Missing features
 - [ ] Defining the commands : cd, loadmem, memdump and showlist.
+- [ ] In these commands, have a trace of the 3-tuple (`name`, `pid`, `exit_status`).
 - [ ] Implement the parallel execution of these commands (in function `executeCmd`).
