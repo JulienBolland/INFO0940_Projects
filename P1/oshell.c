@@ -49,28 +49,6 @@ char readCharInput(void) {
 // Here you can add your creepy stuff...
 
 /* -----------------------------------------------------------------------------
- * Check whether the command stored in 'arguments' is handled by OShell.
- *
- * PARAMETERS
- * arguments    represents an array of string which contains the command ([0])
- *              and its arguments ([1], [2], ... [255]).
- *
- * RETURN
- * int     1 if the command is handled, 0 otherwise and -1 if it is the exit
- *         command.
- * ---------------------------------------------------------------------------*/
-int checkCmd(char** arguments){
-  if(!strcmp(arguments[0], "cd")||!strcmp(arguments[0], "memdump")|| \
-     !strcmp(arguments[0], "loadmem")||!strcmp(arguments[0], "showlist")){
-       return 1;
-  }
-  else if(!strcmp(arguments[0], "exit")){
-    return -1;
-  }
-  return 0;
-}
-
-/* -----------------------------------------------------------------------------
  * Call the function corresponding to the command given by the user.
  *
  * PARAMETERS
@@ -78,18 +56,21 @@ int checkCmd(char** arguments){
  *              and its arguments ([1], [2], ... [255]).
  * copies       specifies the number of times the execution has to be made
  * parallel     specifies if the execution is parallel or sequential
+ * meta         a pointer on a metadata structure
+ * nbOfCmd      a pointer on a int containing the number of commands that have
+ *              been stored so far
  *
  * RETURN
  * metadata     struct defining the commands that have been executed
  * ---------------------------------------------------------------------------*/
-metadata* executeCmd(char** arguments, int copies, int parallel){
-  metadata* meta = malloc(sizeof(metadata)*10);
+void executeCmd(char** arguments, int copies, int parallel, \
+                metadata** meta, int* nbOfCmd){
   // cd
   if(!strcmp(arguments[0], "cd")){
     // Sequential execution
     if(!parallel){
       for(int i = 0; i < copies; i++){
-        meta[i] = cd(arguments);
+        cdCmd(arguments);
       }
     }
     // Parallel execution
@@ -99,15 +80,160 @@ metadata* executeCmd(char** arguments, int copies, int parallel){
   }
   // loadmem
   else if(!strcmp(arguments[0], "loadmem")){
+    // Sequential execution
+    if(!parallel){
+      for(int i = 0; i < copies; i++){
+        loadmemCmd(arguments);
+      }
+    }
+    // Parallel execution
+    else{
 
+    }
   }
   // memdump
   else if(!strcmp(arguments[0], "memdump")){
+    // Sequential execution
+    if(!parallel){
+      for(int i = 0; i < copies; i++){
+        memdumpCmd(arguments);
+      }
+    }
+    // Parallel execution
+    else{
 
+    }
   }
   // showlist
-  else{
+  else if(!strcmp(arguments[0], "memdump")){
+    // Sequential execution
+    if(!parallel){
+      for(int i = 0; i < copies; i++){
+        showlistCmd(arguments);
+      }
+    }
+    // Parallel execution
+    else{
 
+    }
   }
-  return meta;
+  else{
+    pid_t pid;
+    // Sequential execution
+    if(!parallel){
+      for(int i = 0; i < copies; i++){
+        pid = fork();
+        if (pid == 0){
+          meta[*(nbOfCmd) + i] = otherCmd(arguments);
+        }
+      }
+    }
+    // Parallel execution
+    else{
+
+    }
+    // Incrementing the number of commands executed
+    nbOfCmd += copies;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * Execute the operations of a 'cd' command.
+ *
+ * PARAMETERS
+ * arguments    represents an array of string which contains the command ([0])
+ *              and its arguments ([1], [2], ... [255]).
+ *
+ * RETURN
+ * /
+ * ---------------------------------------------------------------------------*/
+void cdCmd(char** arguments){
+  // Reset error number at each time, to avoid conflict with old error
+  errno = 0;
+  // If no argument or if '~' (ASCII => 126) is given, we go to /home
+  if(arguments[1] == NULL || *arguments[1] == 126){
+    int exit_status = chdir("/home");
+    return;
+  }
+  // We change the directory with the specified path
+  int exit_status = chdir(arguments[1]);
+  // If an error occured
+  if(errno == ENOENT || errno == ENOTDIR || errno == EACCES || errno == EIO){
+    perror("Usage error");
+    return;
+  }
+  return;
+}
+
+/* -----------------------------------------------------------------------------
+ * Execute the operation of a 'showlist' command.
+ *
+ * PARAMETERS
+ * arguments    represents an array of string which contains the command ([0])
+ *              and its arguments ([1], [2], ... [255]).
+ *
+ * RETURN
+ * /
+ * ---------------------------------------------------------------------------*/
+void showlistCmd(char** arguments){
+
+}
+
+/* -----------------------------------------------------------------------------
+ * Execute the operation of a 'loadmem' command.
+ *
+ * PARAMETERS
+ * arguments    represents an array of string which contains the command ([0])
+ *              and its arguments ([1], [2], ... [255]).
+ *
+ * RETURN
+ * /
+ * ---------------------------------------------------------------------------*/
+void loadmemCmd(char** arguments){
+
+}
+
+/* -----------------------------------------------------------------------------
+ * Execute the operation of a 'memdump' command.
+ *
+ * PARAMETERS
+ * arguments    represents an array of string which contains the command ([0])
+ *              and its arguments ([1], [2], ... [255]).
+ *
+ * RETURN
+ * /
+ * ---------------------------------------------------------------------------*/
+void memdumpCmd(char** arguments){
+
+}
+
+/* -----------------------------------------------------------------------------
+ * Execute the operation of a 'memdump' command.
+ *
+ * PARAMETERS
+ * arguments    represents an array of string which contains the command ([0])
+ *              and its arguments ([1], [2], ... [255]).
+ * meta         a pointer on a metadata structure
+ * nbOfCmd      a pointer on a int containing the number of commands that have
+ *              been stored so far
+ * copies       specifies the number of times the execution has to be made
+ *
+ * RETURN
+ * metadata     struct defining the command that has been executed
+ * ---------------------------------------------------------------------------*/
+metadata* otherCmd(char** arguments){
+  errno = 0;
+  metadata* returnedMeta = malloc(sizeof(metadata));
+  if(returnedMeta == NULL){
+    printf("Error during memory allocation for metadata. Abort execution.\n");
+    return NULL;
+  }
+  returnedMeta->cmd = arguments[0];
+  returnedMeta->pid = 0; // TO MODIFY WITH REAL VALUE
+  returnedMeta->exit_status = execvp(arguments[0], arguments);
+  printf("here1\n");
+  if(errno != 0){
+    perror("Usage error");
+  }
+  return returnedMeta;
 }

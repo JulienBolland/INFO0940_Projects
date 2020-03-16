@@ -13,6 +13,9 @@ Member2: s162425 - Gilson - Maxence
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/types.h>
 
 typedef struct{
   char* cmd;
@@ -27,12 +30,13 @@ static const int MAX_DATA = 256;
 char readCharInput(void);                           // DO NOT MODIFY
 void parseCmdLine(char* line, char** arguments);    // DO NOT MODIFY
 
-int checkCmd(char** arguments);
-metadata* executeCmd(char** arguments, int copies, int parallel);
-metadata cd(char** arguments);
-metadata showlist();
-metadata loadmem();
-metadata memdump();
+void executeCmd(char** arguments, int copies, int parallel, \
+                metadata** meta, int* nbOfCmd);
+void cdCmd(char** arguments);
+void showlistCmd(char** arguments);
+void loadmemCmd(char** arguments);
+void memdumpCmd(char** arguments);
+metadata* otherCmd(char** arguments);
 
 
 #endif /* oshell_h */

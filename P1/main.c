@@ -26,6 +26,7 @@ int main() {
 
     int copies;
     int parallel = false;
+    int numberOfCmd = 0;
     metadata* meta = malloc(sizeof(metadata) * MAX_DATA);
     if(!meta){
       printf("Error while allocating metadata structure.\n");
@@ -43,14 +44,8 @@ int main() {
 
         // Add some stuff here ...
 
-        // Check the specified command
-        int check = checkCmd(arguments);
-        if(check == 0){
-          printf("The specified command is not handled by OShell. ");
-          printf("Please refer to the documentation.\n");
-          continue;
-        }
-        else if(check == -1){
+        // If the command is the exit command
+        if(!strcmp(arguments[0], "exit")){
           free(meta);
           printf("See you soon!\n");
           break;
@@ -71,7 +66,8 @@ int main() {
         // Add another stuff here ...
 
         // Execute the specified command
-        executeCmd(arguments, copies, parallel);
+        executeCmd(arguments, copies, parallel, &meta, &numberOfCmd);
+        printf("here2\n");
 
     }while(true);
 }
