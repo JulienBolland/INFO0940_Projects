@@ -12,7 +12,7 @@ which will compile the codes. Then, use
 Where `valgrind` is used for debugging. 
 
 ## TO DO
-- [ ] Usage of `execvp` to execute any command of the terminal => add the wait function of the parent process.
+- [X] Usage of `execvp` to execute any command of the terminal => add the wait function of the parent process.
 - [ ] Defining the built-in commands (along with their errors handling) : cd [DONE], loadmem [ ], memdump [ ] and showlist [ ].
 - [ ] Have a trace of the 3-tuple (`name`, `pid`, `exit_status`) of non built-in commands (all except the last 4).
 - [ ] Implement the parallel execution of these commands (in function `executeCmd`).
