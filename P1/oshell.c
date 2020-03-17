@@ -64,7 +64,7 @@ char readCharInput(void) {
  * metadata     struct defining the commands that have been executed
  * ---------------------------------------------------------------------------*/
 void executeCmd(char** arguments, int copies, int parallel, \
-                metadata** meta, int* nbOfCmd){
+                metadata* meta, int* nbOfCmd){
   // cd
   if(!strcmp(arguments[0], "cd")){
     // Sequential execution
@@ -124,7 +124,14 @@ void executeCmd(char** arguments, int copies, int parallel, \
       for(int i = 0; i < copies; i++){
         pid = fork();
         if (pid == 0){
-          meta[*(nbOfCmd) + i] = otherCmd(arguments);
+          //meta[*(nbOfCmd) + i]->cmd = arguments[0];
+          execvp(arguments[0], arguments);
+        }
+        int status;
+        waitpid(pid, &status, 0);
+        if(WIFEXITED(status)){
+            meta[*(nbOfCmd) + i].pid = pid;
+            meta[*(nbOfCmd) + i].exit_status = WEXITSTATUS(status);
         }
       }
     }
@@ -205,35 +212,4 @@ void loadmemCmd(char** arguments){
  * ---------------------------------------------------------------------------*/
 void memdumpCmd(char** arguments){
 
-}
-
-/* -----------------------------------------------------------------------------
- * Execute the operation of a 'memdump' command.
- *
- * PARAMETERS
- * arguments    represents an array of string which contains the command ([0])
- *              and its arguments ([1], [2], ... [255]).
- * meta         a pointer on a metadata structure
- * nbOfCmd      a pointer on a int containing the number of commands that have
- *              been stored so far
- * copies       specifies the number of times the execution has to be made
- *
- * RETURN
- * metadata     struct defining the command that has been executed
- * ---------------------------------------------------------------------------*/
-metadata* otherCmd(char** arguments){
-  errno = 0;
-  metadata* returnedMeta = malloc(sizeof(metadata));
-  if(returnedMeta == NULL){
-    printf("Error during memory allocation for metadata. Abort execution.\n");
-    return NULL;
-  }
-  returnedMeta->cmd = arguments[0];
-  returnedMeta->pid = 0; // TO MODIFY WITH REAL VALUE
-  returnedMeta->exit_status = execvp(arguments[0], arguments);
-  printf("here1\n");
-  if(errno != 0){
-    perror("Usage error");
-  }
-  return returnedMeta;
 }

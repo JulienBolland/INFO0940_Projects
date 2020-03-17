@@ -27,7 +27,7 @@ int main() {
     int copies;
     int parallel = false;
     int numberOfCmd = 0;
-    metadata* meta = malloc(sizeof(metadata) * MAX_DATA);
+    metadata* meta = malloc(sizeof(metadata)* MAX_DATA);
     if(!meta){
       printf("Error while allocating metadata structure.\n");
       return -1;
@@ -66,8 +66,7 @@ int main() {
         // Add another stuff here ...
 
         // Execute the specified command
-        executeCmd(arguments, copies, parallel, &meta, &numberOfCmd);
-        printf("here2\n");
+        executeCmd(arguments, copies, parallel, meta, &numberOfCmd);
 
     }while(true);
 }

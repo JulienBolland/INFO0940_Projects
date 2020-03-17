@@ -16,10 +16,11 @@ Member2: s162425 - Gilson - Maxence
 #include <unistd.h>
 #include <errno.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 
 typedef struct{
   char* cmd;
-  unsigned int pid;
+  pid_t pid;
   int exit_status;
 }metadata;
 
@@ -31,7 +32,7 @@ char readCharInput(void);                           // DO NOT MODIFY
 void parseCmdLine(char* line, char** arguments);    // DO NOT MODIFY
 
 void executeCmd(char** arguments, int copies, int parallel, \
-                metadata** meta, int* nbOfCmd);
+                metadata* meta, int* nbOfCmd);
 void cdCmd(char** arguments);
 void showlistCmd(char** arguments);
 void loadmemCmd(char** arguments);
