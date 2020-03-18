@@ -34,7 +34,7 @@ void parseCmdLine(char* line, char** arguments);    // DO NOT MODIFY
 void executeCmd(char** arguments, int copies, int parallel, \
                 metadata* meta, int* nbOfCmd);
 void cdCmd(char** arguments);
-void showlistCmd(char** arguments);
+void showlistCmd(char** arguments, metadata* meta, int* nbOfCmd);
 void loadmemCmd(char** arguments);
 void memdumpCmd(char** arguments);
 metadata* otherCmd(char** arguments);

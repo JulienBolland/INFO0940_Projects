@@ -56,7 +56,7 @@ char readCharInput(void) {
  *              and its arguments ([1], [2], ... [255]).
  * copies       specifies the number of times the execution has to be made
  * parallel     specifies if the execution is parallel or sequential
- * meta         a pointer on a metadata structure
+ * meta         an array of a metadata structure
  * nbOfCmd      a pointer on a int containing the number of commands that have
  *              been stored so far
  *
@@ -105,11 +105,11 @@ void executeCmd(char** arguments, int copies, int parallel, \
     }
   }
   // showlist
-  else if(!strcmp(arguments[0], "memdump")){
+  else if(!strcmp(arguments[0], "showlist")){
     // Sequential execution
     if(!parallel){
       for(int i = 0; i < copies; i++){
-        showlistCmd(arguments);
+        showlistCmd(arguments, meta, nbOfCmd);
       }
     }
     // Parallel execution
@@ -124,12 +124,12 @@ void executeCmd(char** arguments, int copies, int parallel, \
       for(int i = 0; i < copies; i++){
         pid = fork();
         if (pid == 0){
-          //meta[*(nbOfCmd) + i]->cmd = arguments[0];
           execvp(arguments[0], arguments);
         }
         int status;
         waitpid(pid, &status, 0);
         if(WIFEXITED(status)){
+            meta[*(nbOfCmd) + i].cmd = arguments[0];
             meta[*(nbOfCmd) + i].pid = pid;
             meta[*(nbOfCmd) + i].exit_status = WEXITSTATUS(status);
         }
@@ -140,7 +140,7 @@ void executeCmd(char** arguments, int copies, int parallel, \
 
     }
     // Incrementing the number of commands executed
-    nbOfCmd += copies;
+    *(nbOfCmd) += copies;
   }
 }
 
@@ -162,6 +162,10 @@ void cdCmd(char** arguments){
     int exit_status = chdir("/home");
     return;
   }
+  else if(arguments[2] != NULL){
+    printf("Usage error: Too many arguments.\n");
+    return;
+  }
   // We change the directory with the specified path
   int exit_status = chdir(arguments[1]);
   // If an error occured
@@ -178,12 +182,27 @@ void cdCmd(char** arguments){
  * PARAMETERS
  * arguments    represents an array of string which contains the command ([0])
  *              and its arguments ([1], [2], ... [255]).
+ * meta         an array of a metadata structure
  *
  * RETURN
  * /
  * ---------------------------------------------------------------------------*/
-void showlistCmd(char** arguments){
-
+void showlistCmd(char** arguments, metadata* meta, int* nbOfCmd){
+  if(arguments[1] != NULL){
+    printf("Usage error: Too many arguments.\n");
+    return;
+  }
+  for(int i = 0; i < *(nbOfCmd); i++){
+    if(i != *(nbOfCmd)-1){
+      printf("(%s,%ld,%d)->", meta[i].cmd, (long)meta[i].pid, \
+                                meta[i].exit_status);
+    }
+    else{
+      printf("(%s,%ld,%d)\n", meta[i].cmd, (long)meta[i].pid, \
+                                meta[i].exit_status);
+    }
+  }
+  return;
 }
 
 /* -----------------------------------------------------------------------------
