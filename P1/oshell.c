@@ -123,13 +123,19 @@ void executeCmd(char** arguments, int copies, int parallel, \
     if(!parallel){
       for(int i = 0; i < copies; i++){
         pid = fork();
-        if (pid == 0){
+        if(pid == 0){
           execvp(arguments[0], arguments);
         }
         int status;
         waitpid(pid, &status, 0);
         if(WIFEXITED(status)){
-            meta[*(nbOfCmd) + i].cmd = arguments[0];
+            meta[*(nbOfCmd) + i].cmd = malloc(sizeof(char) * \
+                                       (1 + strlen(arguments[0])));
+            if(meta[*(nbOfCmd) + i].cmd == NULL){
+              perror("Malloc error");
+              return;
+            }
+            strcpy(meta[*(nbOfCmd) + i].cmd, arguments[0]);
             meta[*(nbOfCmd) + i].pid = pid;
             meta[*(nbOfCmd) + i].exit_status = WEXITSTATUS(status);
         }
@@ -159,7 +165,7 @@ void cdCmd(char** arguments){
   errno = 0;
   // If no argument or if '~' (ASCII => 126) is given, we go to /home
   if(arguments[1] == NULL || *arguments[1] == 126){
-    int exit_status = chdir("/home");
+    chdir("/home");
     return;
   }
   else if(arguments[2] != NULL){
@@ -167,7 +173,7 @@ void cdCmd(char** arguments){
     return;
   }
   // We change the directory with the specified path
-  int exit_status = chdir(arguments[1]);
+  chdir(arguments[1]);
   // If an error occured
   if(errno == ENOENT || errno == ENOTDIR || errno == EACCES || errno == EIO){
     perror("Usage error");
@@ -216,7 +222,10 @@ void showlistCmd(char** arguments, metadata* meta, int* nbOfCmd){
  * /
  * ---------------------------------------------------------------------------*/
 void loadmemCmd(char** arguments){
-
+  char* c = arguments[0];
+  for(unsigned int i = 0; i < strlen(c); i++){
+    break;
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -230,5 +239,8 @@ void loadmemCmd(char** arguments){
  * /
  * ---------------------------------------------------------------------------*/
 void memdumpCmd(char** arguments){
-
+  char* c = arguments[0];
+  for(unsigned int i = 0; i < strlen(c); i++){
+    break;
+  }
 }

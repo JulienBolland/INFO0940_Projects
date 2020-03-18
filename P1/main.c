@@ -28,7 +28,7 @@ int main() {
     int parallel = false;
     int numberOfCmd = 0;
     metadata* meta = malloc(sizeof(metadata)* MAX_DATA);
-    if(!meta){
+    if(meta == NULL){
       printf("Error while allocating metadata structure.\n");
       return -1;
     }
@@ -46,6 +46,9 @@ int main() {
 
         // If the command is the exit command
         if(!strcmp(arguments[0], "exit")){
+          for(int j = 0; j < numberOfCmd; j++){
+            free(meta[j].cmd);
+          }
           free(meta);
           printf("See you soon!\n");
           break;
