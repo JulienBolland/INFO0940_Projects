@@ -15,6 +15,7 @@ Member2: s162425 - Gilson - Maxence
 #include <stdbool.h>
 #include <unistd.h>
 #include <errno.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -37,7 +38,9 @@ void cdCmd(char** arguments);
 void showlistCmd(char** arguments, metadata* meta, int* nbOfCmd);
 void loadmemCmd(char** arguments);
 void memdumpCmd(char** arguments);
-metadata* otherCmd(char** arguments);
+void otherCmd(char** arguments, metadata* meta);
+void parallelExecution(char** arguments, int copies, metadata* meta, \
+                       int* nbOfCmd);
 
 
 #endif /* oshell_h */

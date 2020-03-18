@@ -25,7 +25,7 @@ int main() {
     char* arguments[MAX_ARGS];
 
     int copies;
-    int parallel = false;
+    int parallel = true;
     int numberOfCmd = 0;
     metadata* meta = malloc(sizeof(metadata)* MAX_DATA);
     if(meta == NULL){
@@ -50,7 +50,7 @@ int main() {
             free(meta[j].cmd);
           }
           free(meta);
-          printf("See you soon!\n");
+          printf("\tSee you soon!\n");
           break;
         }
 

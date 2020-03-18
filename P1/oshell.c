@@ -75,7 +75,7 @@ void executeCmd(char** arguments, int copies, int parallel, \
     }
     // Parallel execution
     else{
-
+      parallelExecution(arguments, copies, meta, NULL);
     }
   }
   // loadmem
@@ -88,7 +88,7 @@ void executeCmd(char** arguments, int copies, int parallel, \
     }
     // Parallel execution
     else{
-
+      parallelExecution(arguments, copies, meta, NULL);
     }
   }
   // memdump
@@ -101,7 +101,7 @@ void executeCmd(char** arguments, int copies, int parallel, \
     }
     // Parallel execution
     else{
-
+      parallelExecution(arguments, copies, meta, NULL);
     }
   }
   // showlist
@@ -114,16 +114,16 @@ void executeCmd(char** arguments, int copies, int parallel, \
     }
     // Parallel execution
     else{
-
+      parallelExecution(arguments, copies, meta, nbOfCmd);
     }
   }
+  // For any command in bash
   else{
-    pid_t pid;
     // Sequential execution
     if(!parallel){
       for(int i = 0; i < copies; i++){
-        pid = fork();
-        if(pid == 0){
+        pid_t pid;
+        if((pid = fork()) == 0){
           execvp(arguments[0], arguments);
         }
         int status;
@@ -243,4 +243,62 @@ void memdumpCmd(char** arguments){
   for(unsigned int i = 0; i < strlen(c); i++){
     break;
   }
+}
+
+/* -----------------------------------------------------------------------------
+ * Execute the specified command in a parallel way.
+ *
+ * PARAMETERS
+ * arguments    represents an array of string which contains the command ([0])
+ *              and its arguments ([1], [2], ... [255]).
+ * copies       specifies the number of times the execution has to be made
+ * meta         an array of a metadata structure
+ * nbOfCmd      a pointer on a int containing the number of commands that have
+ *              been stored so far
+ *
+ * RETURN
+ * /
+ * ---------------------------------------------------------------------------*/
+void parallelExecution(char** arguments, int copies, metadata* meta, \
+                       int* nbOfCmd){
+  pid_t current_pid;
+  pid_t* children = malloc(sizeof(pid_t) * copies);
+  if(children == NULL){
+    perror("Malloc error");
+    return;
+  }
+  int status;
+  for(int i = 0; i < copies; i++){
+    if((current_pid = fork()) < 0){
+      perror("Fork error");
+      free(children);
+      return;
+    }
+    if(current_pid == 0){
+      if(!strcmp(arguments[0], "cd")){
+        cdCmd(arguments);
+      }
+      else if(!strcmp(arguments[0],"showlist")){
+        showlistCmd(arguments, meta, nbOfCmd);
+      }
+      else if(!strcmp(arguments[0],"loadmem")){
+        loadmemCmd(arguments);
+      }
+      else if(!strcmp(arguments[0],"memdump")){
+        memdumpCmd(arguments);
+      }
+      for(int j = 0; j < *(nbOfCmd); j++){
+        free(meta[j].cmd);
+      }
+      free(meta);
+      free(children);
+      exit(0);
+    }
+    children[i] = current_pid;
+  }
+  for(int i = 0; i < copies; i++){
+    waitpid(children[i], &status, 0);
+  }
+  free(children);
+  return;
 }
