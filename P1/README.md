@@ -10,6 +10,7 @@ which will compile the codes. Then, use
 [valgrind] ./oshell
 ```
 Where `valgrind` is used for debugging.
+When the prompt `OShell>` appears, type the bash command you want to use. Then, follow the instructions.
 
 ## TO DO
 - [X] Usage of `execvp` to execute any command of the terminal => add the wait function of the parent process.
