@@ -14,6 +14,6 @@ Where `valgrind` is used for debugging.
 ## TO DO
 - [X] Usage of `execvp` to execute any command of the terminal => add the wait function of the parent process.
 - [ ] Defining the built-in commands (along with their errors handling) : cd [DONE], loadmem [ ], memdump [ ] and showlist [DONE].
-- [ ] Have a trace of the 3-tuple (`name`, `pid`, `exit_status`) of non built-in commands (all except the last 4).
+- [X] Have a trace of the 3-tuple (`name`, `pid`, `exit_status`) of non built-in commands (all except the last 4).
 - [ ] Implement the parallel execution of these commands (in function `executeCmd`).
 - [ ] Set a 5 seconds timeout in sequential mode.
