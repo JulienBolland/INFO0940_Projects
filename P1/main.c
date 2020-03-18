@@ -25,7 +25,7 @@ int main() {
     char* arguments[MAX_ARGS];
 
     int copies;
-    int parallel = true;
+    int parallel = false;
     int numberOfCmd = 0;
     metadata* meta = malloc(sizeof(metadata)* MAX_DATA);
     if(meta == NULL){
