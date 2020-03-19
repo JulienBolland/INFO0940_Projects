@@ -6,7 +6,7 @@ Member2: s162425 - Gilson - Maxence
 
 #include "oshell.h"
 
-int ISTIMEDOUT = 0;
+static pid_t GLOBAL_PID = 0;
 
 /* -----------------------------------------------------------------------------
  * Parse a command line into arguments.
@@ -90,7 +90,6 @@ void executeCmd(char** arguments, int copies, int parallel, \
       for(int i = 0; i < copies; i++){
         otherCmd(arguments, &(meta[*(nbOfCmd) + i]));
       }
-      alarm(0);
     }
     // Parallel execution
     else{
@@ -214,39 +213,35 @@ void memdumpCmd(char** arguments){
  *              commands executed
  * ---------------------------------------------------------------------------*/
 void otherCmd(char** arguments, metadata* meta){
-  errno = 0;
-  pid_t pid;
   if(meta == NULL){
     perror("Malloc error");
     return;
   }
-  if((pid = fork()) == 0){
-    if(execvp(arguments[0], arguments) < 0){
-      exit(1);
-    }
-  }
-  int status;
-  signal(SIGALRM, alarmHandler);
   alarm(5);
-  int result = waitpid(pid, &status, 0);
-  if(ISTIMEDOUT){
-    if(result == 0){
-      kill(pid,9);
-      wait(NULL);
-      meta->exit_status = -1;
+  signal(SIGALRM, alarmHandler);
+  if((GLOBAL_PID = fork()) == 0){
+    if(execvp(arguments[0], arguments) < 0){
+      perror("Error while executing command");
+      exit(-1);
     }
   }
-  else{
-    meta->exit_status = WEXITSTATUS(status);
-  }
-  meta->cmd = malloc(sizeof(char) * (1 + strlen(arguments[0])));
-  if(meta->cmd == NULL){
-    free(meta);
-    perror("Malloc error");
+  else if(GLOBAL_PID < 0){
+    perror("Fork failed");
     return;
   }
-  strcpy(meta->cmd, arguments[0]);
-  meta->pid = pid;
+  int status;
+  waitpid(GLOBAL_PID, &status, 0);
+  if(WIFEXITED(status)){
+    meta->cmd = malloc(sizeof(char) * (1 + strlen(arguments[0])));
+    if(meta->cmd == NULL){
+      perror("Malloc error");
+      return;
+    }
+    strcpy(meta->cmd, arguments[0]);
+    meta->pid = GLOBAL_PID;
+    meta->exit_status = WEXITSTATUS(status);
+  }
+  alarm(0);
   return;
 }
 
@@ -289,7 +284,9 @@ metadata* parallelExecution(char** arguments, int copies){
      return NULL;
    }
    if(current_pid == 0){
-     execvp(arguments[0], arguments);
+     if(execvp(arguments[0], arguments) < 0){
+       exit(-1);
+     }
    }
    children[i] = current_pid;
  }
@@ -316,7 +313,7 @@ metadata* parallelExecution(char** arguments, int copies){
 }
 
 /* -----------------------------------------------------------------------------
- * Triggered when a alarm sinal is sent. It set a timeout variable to true.
+ * Triggered when a alarm sinal is sent. It kills the problematic process.
  *
  * PARAMETERS
  * sig_num    signal number
@@ -325,6 +322,8 @@ metadata* parallelExecution(char** arguments, int copies){
  * /
  * ---------------------------------------------------------------------------*/
 void alarmHandler(int sig_num){
-  sig_num = true;
-  ISTIMEDOUT = sig_num;
+  if(sig_num){
+    printf("Process took more than 5 seconds, abort...\n");
+  }
+  kill(GLOBAL_PID, SIGTERM);
 }
