@@ -6,6 +6,8 @@ Member2: s162425 - Gilson - Maxence
 
 #include "oshell.h"
 
+int ISTIMEDOUT = 0;
+
 /* -----------------------------------------------------------------------------
  * Parse a command line into arguments.
  * /!\ DO NOT MODIFY /!\
@@ -67,83 +69,38 @@ void executeCmd(char** arguments, int copies, int parallel, \
                 metadata* meta, int* nbOfCmd){
   // cd
   if(!strcmp(arguments[0], "cd")){
-    // Sequential execution
-    if(!parallel){
-      for(int i = 0; i < copies; i++){
-        cdCmd(arguments);
-      }
-    }
-    // Parallel execution
-    else{
-      parallelExecution(arguments, copies, meta, NULL);
-    }
+    cdCmd(arguments);
   }
   // loadmem
   else if(!strcmp(arguments[0], "loadmem")){
-    // Sequential execution
-    if(!parallel){
-      for(int i = 0; i < copies; i++){
-        loadmemCmd(arguments);
-      }
-    }
-    // Parallel execution
-    else{
-      parallelExecution(arguments, copies, meta, NULL);
-    }
+    loadmemCmd(arguments);
   }
   // memdump
   else if(!strcmp(arguments[0], "memdump")){
-    // Sequential execution
-    if(!parallel){
-      for(int i = 0; i < copies; i++){
-        memdumpCmd(arguments);
-      }
-    }
-    // Parallel execution
-    else{
-      parallelExecution(arguments, copies, meta, NULL);
-    }
+    memdumpCmd(arguments);
   }
   // showlist
   else if(!strcmp(arguments[0], "showlist")){
-    // Sequential execution
-    if(!parallel){
-      for(int i = 0; i < copies; i++){
-        showlistCmd(arguments, meta, nbOfCmd);
-      }
-    }
-    // Parallel execution
-    else{
-      parallelExecution(arguments, copies, meta, nbOfCmd);
-    }
+    showlistCmd(arguments, meta, nbOfCmd);
   }
   // For any command in bash
   else{
     // Sequential execution
     if(!parallel){
       for(int i = 0; i < copies; i++){
-        pid_t pid;
-        if((pid = fork()) == 0){
-          execvp(arguments[0], arguments);
-        }
-        int status;
-        waitpid(pid, &status, 0);
-        if(WIFEXITED(status)){
-            meta[*(nbOfCmd) + i].cmd = malloc(sizeof(char) * \
-                                       (1 + strlen(arguments[0])));
-            if(meta[*(nbOfCmd) + i].cmd == NULL){
-              perror("Malloc error");
-              return;
-            }
-            strcpy(meta[*(nbOfCmd) + i].cmd, arguments[0]);
-            meta[*(nbOfCmd) + i].pid = pid;
-            meta[*(nbOfCmd) + i].exit_status = WEXITSTATUS(status);
-        }
+        otherCmd(arguments, &(meta[*(nbOfCmd) + i]));
       }
+      alarm(0);
     }
     // Parallel execution
     else{
-
+      // Create a temporary array of 'metadata' to copy in the 'meta' array
+      // after the parallel execution
+      metadata* tmp = parallelExecution(arguments, copies);
+      for(int i = 0; i < copies; i++){
+        meta[*(nbOfCmd) + i] = tmp[i];
+      }
+      free(tmp);
     }
     // Incrementing the number of commands executed
     *(nbOfCmd) += copies;
@@ -246,59 +203,128 @@ void memdumpCmd(char** arguments){
 }
 
 /* -----------------------------------------------------------------------------
+ * Execute the specified command once.
+ *
+ * PARAMETERS
+ * arguments    represents an array of string which contains the command ([0])
+ *              and its arguments ([1], [2], ... [255]).
+ *
+ * RETURN
+ * metadata     an pointer to a metadata structure, corresponding to the
+ *              commands executed
+ * ---------------------------------------------------------------------------*/
+void otherCmd(char** arguments, metadata* meta){
+  errno = 0;
+  pid_t pid;
+  if(meta == NULL){
+    perror("Malloc error");
+    return;
+  }
+  if((pid = fork()) == 0){
+    if(execvp(arguments[0], arguments) < 0){
+      exit(1);
+    }
+  }
+  int status;
+  signal(SIGALRM, alarmHandler);
+  alarm(5);
+  int result = waitpid(pid, &status, 0);
+  if(ISTIMEDOUT){
+    if(result == 0){
+      kill(pid,9);
+      wait(NULL);
+      meta->exit_status = -1;
+    }
+  }
+  else{
+    meta->exit_status = WEXITSTATUS(status);
+  }
+  meta->cmd = malloc(sizeof(char) * (1 + strlen(arguments[0])));
+  if(meta->cmd == NULL){
+    free(meta);
+    perror("Malloc error");
+    return;
+  }
+  strcpy(meta->cmd, arguments[0]);
+  meta->pid = pid;
+  return;
+}
+
+/* -----------------------------------------------------------------------------
  * Execute the specified command in a parallel way.
  *
  * PARAMETERS
  * arguments    represents an array of string which contains the command ([0])
  *              and its arguments ([1], [2], ... [255]).
  * copies       specifies the number of times the execution has to be made
- * meta         an array of a metadata structure
- * nbOfCmd      a pointer on a int containing the number of commands that have
- *              been stored so far
+ *
+ * RETURN
+ * metadata     an array of metadata, corresponding to the commands executed by
+ *              each parallel processes
+ * ---------------------------------------------------------------------------*/
+metadata* parallelExecution(char** arguments, int copies){
+ pid_t current_pid;
+ pid_t* children = malloc(sizeof(pid_t) * copies);
+ metadata* meta = malloc(sizeof(metadata) * copies);
+ if(children == NULL && meta == NULL){
+   perror("Malloc error");
+   return NULL;
+ }
+ else if(children == NULL && meta != NULL){
+   free(meta);
+   perror("Malloc error");
+   return NULL;
+ }
+ else if(children != NULL && meta == NULL){
+   free(children);
+   perror("Malloc error");
+   return NULL;
+ }
+ int status;
+ for(int i = 0; i < copies; i++){
+   if((current_pid = fork()) < 0){
+     perror("Fork error");
+     free(children);
+     free(meta);
+     return NULL;
+   }
+   if(current_pid == 0){
+     execvp(arguments[0], arguments);
+   }
+   children[i] = current_pid;
+ }
+ for(int i = 0; i < copies; i++){
+   waitpid(children[i], &status, 0);
+   if(WIFEXITED(status)){
+       meta[i].cmd = malloc(sizeof(char) * (1 + strlen(arguments[0])));
+       if(meta[i].cmd == NULL){
+         for(int j = 0; j < i; j++){
+           free(meta[j].cmd);
+         }
+         free(meta);
+         free(children);
+         perror("Malloc error");
+         return NULL;
+       }
+       strcpy(meta[i].cmd, arguments[0]);
+       meta[i].pid = children[i];
+       meta[i].exit_status = WEXITSTATUS(status);
+   }
+ }
+ free(children);
+ return (meta);
+}
+
+/* -----------------------------------------------------------------------------
+ * Triggered when a alarm sinal is sent. It set a timeout variable to true.
+ *
+ * PARAMETERS
+ * sig_num    signal number
  *
  * RETURN
  * /
  * ---------------------------------------------------------------------------*/
-void parallelExecution(char** arguments, int copies, metadata* meta, \
-                       int* nbOfCmd){
-  pid_t current_pid;
-  pid_t* children = malloc(sizeof(pid_t) * copies);
-  if(children == NULL){
-    perror("Malloc error");
-    return;
-  }
-  int status;
-  for(int i = 0; i < copies; i++){
-    if((current_pid = fork()) < 0){
-      perror("Fork error");
-      free(children);
-      return;
-    }
-    if(current_pid == 0){
-      if(!strcmp(arguments[0], "cd")){
-        cdCmd(arguments);
-      }
-      else if(!strcmp(arguments[0],"showlist")){
-        showlistCmd(arguments, meta, nbOfCmd);
-      }
-      else if(!strcmp(arguments[0],"loadmem")){
-        loadmemCmd(arguments);
-      }
-      else if(!strcmp(arguments[0],"memdump")){
-        memdumpCmd(arguments);
-      }
-      for(int j = 0; j < *(nbOfCmd); j++){
-        free(meta[j].cmd);
-      }
-      free(meta);
-      free(children);
-      exit(0);
-    }
-    children[i] = current_pid;
-  }
-  for(int i = 0; i < copies; i++){
-    waitpid(children[i], &status, 0);
-  }
-  free(children);
-  return;
+void alarmHandler(int sig_num){
+  sig_num = true;
+  ISTIMEDOUT = sig_num;
 }

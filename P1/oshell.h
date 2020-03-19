@@ -9,6 +9,7 @@ Member2: s162425 - Gilson - Maxence
 
 // You can add new header(s), prototype(s) and constant(s)
 
+#define _POSIX_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,8 +40,8 @@ void showlistCmd(char** arguments, metadata* meta, int* nbOfCmd);
 void loadmemCmd(char** arguments);
 void memdumpCmd(char** arguments);
 void otherCmd(char** arguments, metadata* meta);
-void parallelExecution(char** arguments, int copies, metadata* meta, \
-                       int* nbOfCmd);
+metadata* parallelExecution(char** arguments, int copies);
+void alarmHandler(int sig_num);
 
 
 #endif /* oshell_h */

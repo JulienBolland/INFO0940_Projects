@@ -43,7 +43,6 @@ int main() {
         parseCmdLine(line, arguments);
 
         // Add some stuff here ...
-
         // If the command is the exit command
         if(!strcmp(arguments[0], "exit")){
           for(int j = 0; j < numberOfCmd; j++){
@@ -52,6 +51,15 @@ int main() {
           free(meta);
           printf("\tSee you soon!\n");
           break;
+        }
+        // If it is another built-in command
+        else if(!strcmp(arguments[0], "cd") || !strcmp(arguments[0], "loadmem")\
+                || !strcmp(arguments[0], "memdump") || \
+                !strcmp(arguments[0], "showlist")){
+
+          // Execute the built-in command
+          executeCmd(arguments, 1, false, meta, &numberOfCmd);
+          continue;
         }
 
         // Number of times to execute a specific command
