@@ -156,11 +156,11 @@ void showlistCmd(char** arguments, metadata* meta, int* nbOfCmd){
   }
   for(int i = 0; i < *(nbOfCmd); i++){
     if(i != *(nbOfCmd)-1){
-      printf("(%s,%ld,%d)->", meta[i].cmd, (long)meta[i].pid, \
+      printf("(%s;%ld;%d)->", meta[i].cmd, (long)meta[i].pid, \
                                 meta[i].exit_status);
     }
     else{
-      printf("(%s,%ld,%d)\n", meta[i].cmd, (long)meta[i].pid, \
+      printf("(%s;%ld;%d)\n", meta[i].cmd, (long)meta[i].pid, \
                                 meta[i].exit_status);
     }
   }
