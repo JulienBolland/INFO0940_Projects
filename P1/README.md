@@ -14,10 +14,10 @@ When the prompt `OShell>` appears, type the bash command you want to use. Then, 
 
 ## TO DO
 - [X] Usage of `execvp` to execute any command of the terminal => add the wait function of the parent process.
-- [ ] Defining the built-in commands (along with their errors handling) :
+- [X] Defining the built-in commands (along with their errors handling) :
     - [X] cd
-    - [ ] loadmem
-    - [ ] memdump
+    - [X] loadmem
+    - [X] memdump
     - [X] showlist
 - [X] Have a trace of the 3-tuple (`name`, `pid`, `exit_status`) of non built-in commands (all except the last 4).
 - [X] Parallel execution of non built-in functions
