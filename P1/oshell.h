@@ -17,6 +17,7 @@ Member2: s162425 - Gilson - Maxence
 #include <unistd.h>
 #include <errno.h>
 #include <signal.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
@@ -37,8 +38,8 @@ void executeCmd(char** arguments, int copies, int parallel, \
                 metadata* meta, int* nbOfCmd);
 void cdCmd(char** arguments);
 void showlistCmd(char** arguments, metadata* meta, int* nbOfCmd);
-void loadmemCmd(char** arguments);
-void memdumpCmd(char** arguments);
+void loadmemCmd(metadata* meta, int* nbOfCmd);
+void memdumpCmd( metadata* meta, int nbOfCmd);
 void otherCmd(char** arguments, metadata* meta);
 metadata* parallelExecution(char** arguments, int copies);
 void alarmHandler(int sig_num);

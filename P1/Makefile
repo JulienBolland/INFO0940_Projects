@@ -10,4 +10,4 @@ $(PROGRAM): oshell.o main.o
 						$(CC) -o $(PROGRAM) main.c oshell.c $(CFLAGS)
 
 clean :
-				rm -f *.o core
+				rm -f *.o *.bin core

@@ -73,11 +73,15 @@ void executeCmd(char** arguments, int copies, int parallel, \
   }
   // loadmem
   else if(!strcmp(arguments[0], "loadmem")){
-    loadmemCmd(arguments);
+    loadmemCmd(meta, nbOfCmd);
   }
   // memdump
   else if(!strcmp(arguments[0], "memdump")){
-    memdumpCmd(arguments);
+    memdumpCmd(meta, *(nbOfCmd));
+    for(int i = 0; i < *(nbOfCmd); i++){
+      free(meta[i].cmd);
+    }
+    *(nbOfCmd) = 0;
   }
   // showlist
   else if(!strcmp(arguments[0], "showlist")){
@@ -177,11 +181,57 @@ void showlistCmd(char** arguments, metadata* meta, int* nbOfCmd){
  * RETURN
  * /
  * ---------------------------------------------------------------------------*/
-void loadmemCmd(char** arguments){
-  char* c = arguments[0];
-  for(unsigned int i = 0; i < strlen(c); i++){
-    break;
+void loadmemCmd(metadata* meta, int* nbOfCmd){
+  int file_d = open("memdump.bin", O_RDONLY);
+  if(file_d < 0){
+    perror("File oppening error");
+    return;
   }
+  int sz_size = 1;
+  int sz_cmd = 1;
+  int sz_pid = 1;
+  int sz_exit = 1;
+  for(int i = 0; sz_exit != 0 || i < MAX_DATA; i++){
+    size_t current_size;
+    sz_size = read(file_d, &(current_size), sizeof(size_t));
+    meta[i].cmd = malloc(sizeof(char) * (current_size));
+    if(meta[i].cmd == NULL){
+      perror("Malloc error");
+      for(int j = 0; j < i; j++){
+        free(meta[j].cmd);
+      }
+      *(nbOfCmd) = 0;
+      close(file_d);
+      return;
+    }
+    char* str = malloc(sizeof(char) * (current_size));
+    if(meta[i].cmd == NULL){
+      perror("Malloc error");
+      for(int j = 0; j <= i; j++){
+        free(meta[j].cmd);
+      }
+      *(nbOfCmd) = 0;
+      close(file_d);
+      return;
+    }
+    sz_cmd = read(file_d, str, current_size);
+    if(sz_size == 0){
+      break;
+    }
+    strcpy(meta[i].cmd, str);
+    free(str);
+    sz_pid = read(file_d, &(meta[i].pid), sizeof(pid_t));
+    sz_exit = read(file_d, &(meta[i].exit_status), sizeof(int));
+    if(sz_size < 0 || sz_cmd < 0 || sz_pid < 0 || sz_exit < 0){
+      perror("Reading error");
+      close(file_d);
+      return;
+    }
+    *(nbOfCmd) += 1;
+  }
+  close(file_d);
+
+  return;
 }
 
 /* -----------------------------------------------------------------------------
@@ -194,11 +244,26 @@ void loadmemCmd(char** arguments){
  * RETURN
  * /
  * ---------------------------------------------------------------------------*/
-void memdumpCmd(char** arguments){
-  char* c = arguments[0];
-  for(unsigned int i = 0; i < strlen(c); i++){
-    break;
+void memdumpCmd(metadata* meta, int nbOfCmd){
+  int file_d = open("memdump.bin", O_CREAT | O_WRONLY | O_TRUNC, 0640);
+  if(file_d < 0){
+    perror("File oppening error");
+    return;
   }
+  for(int i = 0; i < nbOfCmd; i++){
+    size_t size = strlen(meta[i].cmd)+1;
+    int sz_sz = write(file_d, &(size), sizeof(size_t));
+    int sz_cmd = write(file_d, meta[i].cmd, size);
+    int sz_pid = write(file_d, &(meta[i].pid), sizeof(pid_t));
+    int sz_exit = write(file_d, &(meta[i].exit_status), sizeof(int));
+    if(sz_sz < 0 || sz_cmd < 0 || sz_pid < 0 || sz_exit < 0){
+      perror("Writing error");
+      close(file_d);
+      return;
+    }
+  }
+  close(file_d);
+  return;
 }
 
 /* -----------------------------------------------------------------------------
