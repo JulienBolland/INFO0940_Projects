@@ -1,4 +1,4 @@
-# INFO0940 - Operating Systems - Project 1
+# INFO0940 - Operating Systems - Project 2
 
 ## How it works
 When in the project directory, type in the terminal
@@ -12,7 +12,8 @@ which will compile the codes. Then, use
 Where `valgrind` is used for debugging.
 When the prompt `OShell>` appears, type the bash command you want to use. Then, follow the instructions.
 
-## Testing on submission platform
-```diff
-- Passing 16/20 tests
-```
+## To do
+- [ ] Implement the 3 news bilt-in functions :
+  - [ ] `sys netstats`
+  - [ ] `sys devstats`
+  - [ ] `sys stats 'pid'`
