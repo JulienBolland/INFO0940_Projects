@@ -11,6 +11,11 @@ which will compile the codes. Then, use
 ```
 Where `valgrind` is used for debugging.
 When the prompt `OShell>` appears, type the bash command you want to use. Then, follow the instructions.
+After using the shell, don't forget to execute
+```bash
+make clean
+```
+in order to remove useless files.
 
 ## Testing on submission platform
 ```diff
