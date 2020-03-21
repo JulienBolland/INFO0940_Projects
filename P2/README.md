@@ -18,7 +18,7 @@ make clean
 in order to remove useless files.
 
 ## To do
-- [ ] Implement the 3 news bilt-in functions :
+- [ ] Implement the 3 news built-in functions :
   - [ ] `sys netstats`
   - [ ] `sys devstats`
   - [ ] `sys stats 'pid'`
