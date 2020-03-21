@@ -12,5 +12,7 @@ which will compile the codes. Then, use
 Where `valgrind` is used for debugging.
 When the prompt `OShell>` appears, type the bash command you want to use. Then, follow the instructions.
 
-## TO DO
-- [ ] Report : How did we manage the creation of processes ? What about files handling ?
+## Testing on submission platform
+```diff
+- Passing 16/20 tests
+```
