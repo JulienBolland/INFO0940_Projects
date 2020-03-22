@@ -29,7 +29,7 @@ int main() {
     int numberOfCmd = 0;
     metadata* meta = malloc(sizeof(metadata)* MAX_DATA);
     if(meta == NULL){
-      printf("Error while allocating metadata structure.\n");
+      fprintf(stderr, "Error while allocating metadata structure.\n");
       return -1;
     }
 
@@ -44,7 +44,7 @@ int main() {
 
         // Add some stuff here ...
         // If the command is the exit command
-        if(!strcmp(arguments[0], "exit")){
+        if(isBuiltIn(arguments[0], &(_EXIT))){
           for(int j = 0; j < numberOfCmd; j++){
             free(meta[j].cmd);
           }
@@ -53,10 +53,7 @@ int main() {
           break;
         }
         // If it is another built-in command
-        else if(!strcmp(arguments[0], "cd") || !strcmp(arguments[0], "loadmem")\
-                || !strcmp(arguments[0], "memdump") || \
-                !strcmp(arguments[0], "showlist")){
-
+        else if(isBuiltIn(arguments[0], NULL)){
           // Execute the built-in command
           executeCmd(arguments, 1, false, meta, &numberOfCmd);
           continue;

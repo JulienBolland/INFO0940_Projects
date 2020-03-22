@@ -70,23 +70,23 @@ char readCharInput(void) {
 void executeCmd(char** arguments, int copies, int parallel, \
                 metadata* meta, int* nbOfCmd){
   // cd
-  if(!strcmp(arguments[0], "cd")){
+  if(isBuiltIn(arguments[0], &(_CD))){
     cdCmd(arguments);
   }
   // loadmem
-  else if(!strcmp(arguments[0], "loadmem")){
+  else if(isBuiltIn(arguments[0], &(_LOADMEM))){
     // Check if additionnal arguments have been written
     if(arguments[1] != NULL){
-      printf("Usage error: Too many arguments.\n");
+      fprintf(stderr, "LOADMEM error: Too many arguments.\n");
       return;
     }
     loadmemCmd(meta, nbOfCmd);
   }
   // memdump
-  else if(!strcmp(arguments[0], "memdump")){
+  else if(isBuiltIn(arguments[0], &(_MEMDUMP))){
     // Check if additionnal arguments have been written
     if(arguments[1] != NULL){
-      printf("Usage error: Too many arguments.\n");
+      fprintf(stderr, "MEMDUMP error: Too many arguments.\n");
       return;
     }
     memdumpCmd(meta, *(nbOfCmd));
@@ -96,13 +96,37 @@ void executeCmd(char** arguments, int copies, int parallel, \
     *(nbOfCmd) = 0;
   }
   // showlist
-  else if(!strcmp(arguments[0], "showlist")){
+  else if(isBuiltIn(arguments[0], &(_SHOWLIST))){
     // Check if additionnal arguments have been written
     if(arguments[1] != NULL){
-      printf("Usage error: Too many arguments.\n");
+      fprintf(stderr, "SHOWLIST error: Too many arguments.\n");
       return;
     }
     showlistCmd(meta, nbOfCmd);
+  }
+  // sys
+  else if(isBuiltIn(arguments[0], &(_SYS))){
+    if(arguments[1] == NULL){
+      fprintf(stderr, "SYS error: Missing argument(s).\n");
+      return;
+    }
+    if(isBuiltIn(arguments[1], &(_NETSTATS))){
+      netstatsCmd();
+    }
+    else if(isBuiltIn(arguments[1], &(_DEVSTATS))){
+      devstatsCmd();
+    }
+    else if(isBuiltIn(arguments[1], &(_STATS))){
+      if(arguments[2] == NULL){
+        fprintf(stderr, "SYS STATS error: Missing argument.\n");
+        return;
+      }
+      statsCmd(arguments[2]);
+    }
+    else{
+      fprintf(stderr, "SYS error: Wrong argument.\n");
+      return;
+    }
   }
   // For any command in bash
   else{
@@ -151,7 +175,7 @@ void cdCmd(char** arguments){
     return;
   }
   else if(arguments[2] != NULL){
-    printf("Usage error: Too many arguments.\n");
+    fprintf(stderr, "CD error: Too many arguments.\n");
     return;
   }
   // We change the directory with the specified path
@@ -202,7 +226,7 @@ void showlistCmd(metadata* meta, int* nbOfCmd){
  * ---------------------------------------------------------------------------*/
 void loadmemCmd(metadata* meta, int* nbOfCmd){
   // Open the .bin file in read only
-  int file_d = open("memdump.bin", O_RDONLY);
+  int file_d = open("memdump.bin", O_RDONLY, 0644);
   // If an error occured during file openning
   if(file_d < 0){
     perror("File oppening error");
@@ -282,7 +306,7 @@ void loadmemCmd(metadata* meta, int* nbOfCmd){
 void memdumpCmd(metadata* meta, int nbOfCmd){
   // Open the .bin file : create it if doesn't exist and truncate its content
   // if it exists ; in write only.
-  int file_d = open("memdump.bin", O_CREAT | O_WRONLY | O_TRUNC, 0640);
+  int file_d = open("memdump.bin", O_CREAT | O_WRONLY | O_TRUNC, 0644);
   // If openning file failed
   if(file_d < 0){
     perror("File oppening error");
@@ -308,6 +332,46 @@ void memdumpCmd(metadata* meta, int nbOfCmd){
   close(file_d);
   return;
 }
+
+/* -----------------------------------------------------------------------------
+ * Execute the operation of a 'sys netstats' command.
+ *
+ * PARAMETERS
+ * /
+ *
+ * RETURN
+ * /
+ * ---------------------------------------------------------------------------*/
+void netstatsCmd(){
+  printf("In netstats.\n" );
+}
+
+/* -----------------------------------------------------------------------------
+ * Execute the operation of a 'sys devstats' command.
+ *
+ * PARAMETERS
+ * /
+ *
+ * RETURN
+ * /
+ * ---------------------------------------------------------------------------*/
+void devstatsCmd(){
+  printf("In devstats.\n" );
+}
+
+/* -----------------------------------------------------------------------------
+ * Execute the operation of a 'sys stats <PID>' command.
+ *
+ * PARAMETERS
+ * pid       the pid of the process we want the stats on
+ *
+ * RETURN
+ * /
+ * ---------------------------------------------------------------------------*/
+void statsCmd(char* pid){
+  printf("In stats with pid : %s \n", pid);
+}
+
 
 /* -----------------------------------------------------------------------------
  * Execute the specified command once.
@@ -438,8 +502,63 @@ metadata* parallelExecution(char** arguments, int copies){
  * ---------------------------------------------------------------------------*/
 void alarmHandler(int sig_num){
   if(sig_num){
-    printf("Process took more than 5 seconds, abort...\n");
+    fprintf(stderr, "Process took more than 5 seconds to complete, abort...\n");
   }
   // Kill the children having the GLOBAL_PID
   kill(GLOBAL_PID, SIGTERM);
+}
+
+/* -----------------------------------------------------------------------------
+ * Checks if the specified command is a built-in command. Allow to compare
+ * directly with a specific built-in commands.
+ *
+ * PARAMETERS
+ * cmd        the command specified by the user
+ * loc        the identifier of the built-in command we want to compare cmd to
+ *
+ * RETURN
+ * bool       true if the command is a built-in one, false otherwise.
+ * ---------------------------------------------------------------------------*/
+bool isBuiltIn(char* arg, const int* loc){
+  // The number of built-in commands
+  int nb = 9;
+  char** built_in = malloc(sizeof(char*) * nb);
+  for(int i = 0; i < nb; i++){
+    built_in[i] = malloc(sizeof(char) * 30);
+    if(!built_in){
+      for(int j = 0; j < i; j++){ free(built_in[j]); }
+      free(built_in);
+      perror("Malloc error");
+      return false;
+    }
+  }
+  if(!built_in){
+    perror("Malloc error");
+    return false;
+  }
+  built_in[_CD] = "cd";
+  built_in[_LOADMEM] = "loadmem";
+  built_in[_MEMDUMP] = "memdump";
+  built_in[_SHOWLIST] = "showlist";
+  built_in[_SYS] = "sys";
+  built_in[_EXIT] = "exit";
+  built_in[_NETSTATS] = "netstats";
+  built_in[_DEVSTATS] = "devstats";
+  built_in[_STATS] = "stats";
+  if(!loc){
+    for(int i = 0; i < nb; i++){
+      if(!strcmp(arg, built_in[i])){
+        free(built_in);
+        return true;
+      }
+    }
+  }
+  else{
+    if(!strcmp(arg, built_in[*(loc)])){
+      free(built_in);
+      return true;
+    }
+  }
+  free(built_in);
+  return false;
 }
