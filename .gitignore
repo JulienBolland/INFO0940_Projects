@@ -34,5 +34,8 @@
 *.out
 *.app
 /P1/src/
+/P1/src.tar.gz
 /P1/oshell
 /P2/oshell
+/P2/src/
+/P2/src.tar.gz
