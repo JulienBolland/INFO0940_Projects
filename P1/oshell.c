@@ -77,7 +77,7 @@ void executeCmd(char** arguments, int copies, int parallel, \
   else if(isBuiltIn(arguments[0], &(_LOADMEM))){
     // Check if additionnal arguments have been written
     if(arguments[1] != NULL){
-      printf("Usage error: Too many arguments.\n");
+      fprintf(stderr, "LOADMEM error: Too many arguments.\n");
       return;
     }
     loadmemCmd(meta, nbOfCmd);
@@ -86,7 +86,7 @@ void executeCmd(char** arguments, int copies, int parallel, \
   else if(isBuiltIn(arguments[0], &(_MEMDUMP))){
     // Check if additionnal arguments have been written
     if(arguments[1] != NULL){
-      printf("Usage error: Too many arguments.\n");
+      fprintf(stderr, "MEMDUMP error: Too many arguments.\n");
       return;
     }
     memdumpCmd(meta, *(nbOfCmd));
@@ -99,7 +99,7 @@ void executeCmd(char** arguments, int copies, int parallel, \
   else if(isBuiltIn(arguments[0], &(_SHOWLIST))){
     // Check if additionnal arguments have been written
     if(arguments[1] != NULL){
-      printf("Usage error: Too many arguments.\n");
+      fprintf(stderr, "SHOWLIST error: Too many arguments.\n");
       return;
     }
     showlistCmd(meta, nbOfCmd);
@@ -438,7 +438,7 @@ metadata* parallelExecution(char** arguments, int copies){
  * ---------------------------------------------------------------------------*/
 void alarmHandler(int sig_num){
   if(sig_num){
-    printf("Process took more than 5 seconds, abort...\n");
+    fprintf(stderr, "Process took more than 5 seconds to complete, abort...\n");
   }
   // Kill the children having the GLOBAL_PID
   kill(GLOBAL_PID, SIGTERM);

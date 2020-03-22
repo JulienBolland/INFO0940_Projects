@@ -29,7 +29,7 @@ int main() {
     int numberOfCmd = 0;
     metadata* meta = malloc(sizeof(metadata)* MAX_DATA);
     if(meta == NULL){
-      printf("Error while allocating metadata structure.\n");
+      fprintf(stderr, "Error while allocating metadata structure.\n");
       return -1;
     }
 
