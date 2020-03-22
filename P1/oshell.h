@@ -30,6 +30,13 @@ typedef struct{
 static const int MAX_CMD_SIZE = 256;                // DO NOT MODIFY
 static const int MAX_ARGS = 256;                    // DO NOT MODIFY
 static const int MAX_DATA = 256;
+static const int _CD = 0;
+static const int _LOADMEM = 1;
+static const int _MEMDUMP = 2;
+static const int _SHOWLIST = 3;
+static const int _SYS = 4;
+static const int _EXIT = 5;
+
 
 char readCharInput(void);                           // DO NOT MODIFY
 void parseCmdLine(char* line, char** arguments);    // DO NOT MODIFY
@@ -43,6 +50,7 @@ void memdumpCmd( metadata* meta, int nbOfCmd);
 void otherCmd(char** arguments, metadata* meta);
 metadata* parallelExecution(char** arguments, int copies);
 void alarmHandler(int sig_num);
+bool isBuiltIn(char* arg, const int* loc);
 
 
 #endif /* oshell_h */
