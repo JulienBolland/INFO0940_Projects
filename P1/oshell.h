@@ -34,22 +34,20 @@ static const int _CD = 0;
 static const int _LOADMEM = 1;
 static const int _MEMDUMP = 2;
 static const int _SHOWLIST = 3;
-static const int _SYS = 4;
-static const int _EXIT = 5;
+static const int _EXIT = 4;
 
 
 char readCharInput(void);                           // DO NOT MODIFY
 void parseCmdLine(char* line, char** arguments);    // DO NOT MODIFY
 
-void executeCmd(char** arguments, int copies, int parallel, \
-                metadata* meta, int* nbOfCmd);
+void executeCmd(char** arguments, int copies, int parallel);
 void cdCmd(char** arguments);
-void showlistCmd(metadata* meta, int* nbOfCmd);
-void loadmemCmd(metadata* meta, int* nbOfCmd);
-void memdumpCmd( metadata* meta, int nbOfCmd);
-void otherCmd(char** arguments, metadata* meta);
+void showlistCmd(void);
+void loadmemCmd(void);
+void memdumpCmd(void);
+void otherCmd(char** arguments);
 metadata* parallelExecution(char** arguments, int copies);
-void alarmHandler(int sig_num);
+void signalHandler(int sig_num);
 bool isBuiltIn(char* arg, const int* loc);
 
 

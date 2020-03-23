@@ -44,18 +44,17 @@ static const int _STATS = 8;
 char readCharInput(void);                           // DO NOT MODIFY
 void parseCmdLine(char* line, char** arguments);    // DO NOT MODIFY
 
-void executeCmd(char** arguments, int copies, int parallel, \
-                metadata* meta, int* nbOfCmd);
+void executeCmd(char** arguments, int copies, int parallel);
 void cdCmd(char** arguments);
-void showlistCmd(metadata* meta, int* nbOfCmd);
-void loadmemCmd(metadata* meta, int* nbOfCmd);
-void memdumpCmd(metadata* meta, int nbOfCmd);
+void showlistCmd(void);
+void loadmemCmd(void);
+void memdumpCmd(void);
 void netstatsCmd(void);
 void devstatsCmd(void);
 void statsCmd(char* pid);
-void otherCmd(char** arguments, metadata* meta);
+void otherCmd(char** arguments);
 metadata* parallelExecution(char** arguments, int copies);
-void alarmHandler(int sig_num);
+void signalHandler(int sig_num);
 bool isBuiltIn(char* arg, const int* loc);
 
 

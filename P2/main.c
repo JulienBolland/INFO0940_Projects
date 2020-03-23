@@ -26,12 +26,6 @@ int main() {
 
     int copies;
     int parallel = false;
-    int numberOfCmd = 0;
-    metadata* meta = malloc(sizeof(metadata)* MAX_DATA);
-    if(meta == NULL){
-      fprintf(stderr, "Error while allocating metadata structure.\n");
-      return -1;
-    }
 
     do{
         printf("OShell> ");
@@ -43,19 +37,11 @@ int main() {
         parseCmdLine(line, arguments);
 
         // Add some stuff here ...
-        // If the command is the exit command
-        if(isBuiltIn(arguments[0], &(_EXIT))){
-          for(int j = 0; j < numberOfCmd; j++){
-            free(meta[j].cmd);
-          }
-          free(meta);
-          printf("\tSee you soon!\n");
-          break;
-        }
-        // If it is another built-in command
-        else if(isBuiltIn(arguments[0], NULL)){
+        signal(SIGINT, signalHandler);
+        // If it is a built-in command
+        if(isBuiltIn(arguments[0], NULL)){
           // Execute the built-in command
-          executeCmd(arguments, 1, false, meta, &numberOfCmd);
+          executeCmd(arguments, 1, false);
           continue;
         }
 
@@ -74,7 +60,7 @@ int main() {
         // Add another stuff here ...
 
         // Execute the specified command
-        executeCmd(arguments, copies, parallel, meta, &numberOfCmd);
+        executeCmd(arguments, copies, parallel);
 
     }while(true);
 }
