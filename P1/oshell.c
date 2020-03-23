@@ -165,7 +165,7 @@ void cdCmd(char** arguments){
   errno = 0;
   // If no argument or if '~' (ASCII => 126) is given, we go to /home
   if(arguments[1] == NULL || *arguments[1] == 126){
-    chdir("/home");
+    chdir(getenv("HOME"));
     return;
   }
   else if(arguments[2] != NULL){
