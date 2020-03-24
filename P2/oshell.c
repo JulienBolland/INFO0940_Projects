@@ -246,7 +246,7 @@ void loadmemCmd(void){
   int file_d = open("memdump.bin", O_RDONLY, 0644);
   // If an error occured during file openning
   if(file_d < 0){
-    perror("File oppening error");
+    perror("File opening error");
     return;
   }
   // Initializing the values returned by the reads
@@ -326,7 +326,7 @@ void memdumpCmd(void){
   int file_d = open("memdump.bin", O_CREAT | O_WRONLY | O_TRUNC, 0644);
   // If openning file failed
   if(file_d < 0){
-    perror("File oppening error");
+    perror("File opening error");
     return;
   }
   for(int i = 0; i < nbOfCmd; i++){
@@ -360,7 +360,58 @@ void memdumpCmd(void){
  * /
  * ---------------------------------------------------------------------------*/
 void netstatsCmd(void){
-  printf("In netstats.\n" );
+  FILE *file = fopen("/proc/net/dev", "r");
+  if(!file){
+    perror("File opening error");
+    return;
+  }
+  char* line = (char*) malloc(sizeof(char) * MAX_DATA);
+  if(!line){
+    fprintf(stderr, "Malloc error\n");
+    fclose(file);
+    return;
+  }
+  char* interface = (char*) malloc(sizeof(char) * 10);
+  if(!interface){
+    fprintf(stderr, "Malloc error\n");
+    free(line);
+    fclose(file);
+    return;
+  }
+  unsigned long int pkts_rcvd, pkts_snt, err_rcvd, err_snt, drop_rcvd, drop_snt;
+  float rcvd_err_rate, rcvd_drop_rate, snt_err_rate, snt_drop_rate;
+
+  for(int i = 0; fgets(line, MAX_DATA, file); i++){
+      // The two first lines of /proc/net/dev are titles
+      if(i == 0 || i == 1){
+        continue;
+      }
+      sscanf(line, "%s %*u %lu %lu %lu %*u %*u %*u %*u %*u %lu %lu %lu ", \
+             interface, &pkts_rcvd, &err_rcvd, &drop_rcvd,  &pkts_snt, \
+             &err_snt, &drop_snt);
+
+      // Checking to avoid division by 0
+      if(pkts_rcvd == 0){ rcvd_err_rate = 0; }
+      else{ rcvd_err_rate = err_rcvd/pkts_rcvd; }
+
+      if(pkts_snt == 0){ snt_err_rate = 0; }
+      else{ snt_err_rate = err_snt/pkts_snt; }
+
+      if(pkts_rcvd == 0){ rcvd_drop_rate = 0; }
+      else{ rcvd_drop_rate = drop_rcvd/pkts_rcvd; }
+
+      if(pkts_snt == 0){ snt_drop_rate = 0; }
+      else{ snt_drop_rate = drop_snt/pkts_snt; }
+
+      // Inconsistency writting due to bad output format
+      printf("%s Rx(pkts : %lu, err : %f%%, drop : %f%%) - Tx(pkts : %lu,\
+ err: %f%%, drop : %f%%)\n", interface, pkts_rcvd, rcvd_err_rate, \
+             rcvd_drop_rate, pkts_snt, snt_err_rate, snt_drop_rate);
+  }
+  free(interface);
+  free(line);
+  fclose(file);
+  return;
 }
 
 /* -----------------------------------------------------------------------------
@@ -386,7 +437,72 @@ void devstatsCmd(void){
  * /
  * ---------------------------------------------------------------------------*/
 void statsCmd(char* pid){
-  printf("In stats with pid : %s \n", pid);
+  int total_length = strlen("/proc/")+strlen(pid)+strlen("/status") + 3;
+  char* filename = malloc(sizeof(char) * total_length);
+  if(!filename){
+    perror("Malloc error");
+    return;
+  }
+  snprintf(filename, total_length, "%s%s%s", "/proc/", pid, "/stat");
+
+  FILE *file = fopen(filename, "r");
+  if(!file){
+   perror("File opening error");
+   goto ALL3;
+  }
+  char* line = (char*) malloc(sizeof(char) * MAX_DATA);
+  if(!line){
+   fprintf(stderr, "Malloc error\n");
+   goto ALL2;
+  }
+  char* name = (char*) malloc(sizeof(char) * 20);
+  if(!name){
+    fprintf(stderr, "Malloc error\n");
+    goto ALL1;
+  }
+  char state;
+  long int threads;
+  fgets(line, MAX_DATA, file);
+  // Place and format of each data for 'proc/<PID>/stat' taken from man page of
+  // proc on https://linux.die.net/man/5/proc
+  sscanf(line, "%*d %s %c %*d %*d %*d %*d %*d %*u %*u %*u %*u %*u %*u %*u %*d \
+                %*d %*d %*d %ld", name, &state, &threads);
+  char* tmp = (char*) malloc(sizeof(char) * 20);
+  if(!tmp){
+    fprintf(stderr, "Malloc error\n");
+    goto ALL;
+  }
+  int j = 0;
+  for(int i = 0; name[i] != '\0'; i++){
+    if(name[i] == '(' || name[i] == ')'){ continue; }
+    tmp[j++] = name[i];
+  }
+  tmp[j] = '\0';
+  strcpy(name, tmp);
+  free(tmp);
+  printf("Process name: %s\n", name);
+  printf("Process state: %c ", state);
+  switch(state){
+    case 'S': printf("(sleeping)\n"); break;
+    case 'R': printf("(running)\n"); break;
+    case 'D': printf("(disk sleep)\n"); break;
+    case 'Z': printf("(zombie)\n"); break;
+    case 'T': printf("(traced or stopped)\n"); break;
+    case 'W': printf("(paging)\n"); break;
+    case 'I': printf("(idle)\n"); break;
+    default: printf("\n"); break;
+  }
+  printf("Process threads: %ld\n", threads);
+
+  ALL:
+  free(name);
+  ALL1:
+  free(line);
+  ALL2:
+  fclose(file);
+  ALL3:
+  free(filename);
+  return;
 }
 
 
