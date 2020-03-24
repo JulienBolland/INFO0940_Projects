@@ -6,8 +6,17 @@ PROGRAM=oshell
 
 all : $(PROGRAM)
 
-$(PROGRAM): oshell.o main.o
-						$(CC) -o $(PROGRAM) main.c oshell.c $(CFLAGS)
+$(PROGRAM): main.o oshell.o sys.o
+						$(CC) -o $(PROGRAM) main.o oshell.o sys.o $(CFLAGS)
+						
+oshell.o: oshell.c oshell.h
+					$(CC) -c oshell.c $(CFLAGS)
+
+sys.o: sys.c sys.h
+			 $(CC) -c sys.c $(CFLAGS)
+
+main.o: main.c
+			 $(CC) -c main.c $(CFLAGS)
 
 clean :
 				rm -f *.o *.bin core

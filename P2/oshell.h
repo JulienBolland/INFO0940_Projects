@@ -18,8 +18,10 @@ Member2: s162425 - Gilson - Maxence
 #include <errno.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <dirent.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include "sys.h"
 
 typedef struct{
   char* cmd;
@@ -49,9 +51,6 @@ void cdCmd(char** arguments);
 void showlistCmd(void);
 void loadmemCmd(void);
 void memdumpCmd(void);
-void netstatsCmd(void);
-void devstatsCmd(void);
-void statsCmd(char* pid);
 void otherCmd(char** arguments);
 metadata* parallelExecution(char** arguments, int copies);
 void signalHandler(int sig_num);
