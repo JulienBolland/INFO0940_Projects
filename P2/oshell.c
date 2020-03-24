@@ -132,9 +132,15 @@ void executeCmd(char** arguments, int copies, int parallel){
     }
     else if(isBuiltIn(arguments[1], &(_DEVSTATS))){
       long int active = 0, suspended = 0, unsupported = 0;
-      devstatsCmd("/sys/devices", &active, &suspended, &unsupported);
+      struct dirent *entry = malloc(sizeof(struct dirent));
+      if(!entry){
+        fprintf(stderr, "Malloc error\n");
+        return;
+      }
+      devstatsCmd("/sys/devices", &active, &suspended, &unsupported, entry);
       printf("Active: %ld\nSuspended: %ld\nUnsupported: %ld\n", active,\
               suspended, unsupported);
+      free(entry);
     }
     else if(isBuiltIn(arguments[1], &(_STATS))){
       if(arguments[2] == NULL){
@@ -263,7 +269,7 @@ void loadmemCmd(void){
     meta[nbOfCmd + i].cmd = malloc(sizeof(char) * (current_size));
     // If malloc failed
     if(meta[nbOfCmd + i].cmd == NULL){
-      perror("Malloc error");
+      fprintf(stderr, "Malloc error\n");
       for(int j = 0; j < i; j++){
         free(meta[nbOfCmd + j].cmd);
       }
@@ -275,7 +281,7 @@ void loadmemCmd(void){
     char* str = malloc(sizeof(char) * (current_size));
     // If malloc failed
     if(meta[nbOfCmd + i].cmd == NULL){
-      perror("Malloc error");
+      fprintf(stderr, "Malloc error\n");
       for(int j = 0; j <= i; j++){
         free(meta[nbOfCmd + j].cmd);
       }
@@ -388,7 +394,7 @@ void otherCmd(char** arguments){
   if(WIFEXITED(status)){
     meta[nbOfCmd].cmd = malloc(sizeof(char) * (1 + strlen(arguments[0])));
     if(meta[nbOfCmd].cmd == NULL){
-      perror("Malloc error");
+      fprintf(stderr, "Malloc error\n");
       return;
     }
     strcpy(meta[nbOfCmd].cmd, arguments[0]);
@@ -421,17 +427,17 @@ metadata* parallelExecution(char** arguments, int copies){
  metadata* meta = malloc(sizeof(metadata) * copies);
  // Checking failure scenarios
  if(children == NULL && meta == NULL){
-   perror("Malloc error");
+   fprintf(stderr, "Malloc error\n");
    return NULL;
  }
  else if(children == NULL && meta != NULL){
    free(meta);
-   perror("Malloc error");
+   fprintf(stderr, "Malloc error\n");
    return NULL;
  }
  else if(children != NULL && meta == NULL){
    free(children);
-   perror("Malloc error");
+   fprintf(stderr, "Malloc error\n");
    return NULL;
  }
  int status;
@@ -461,7 +467,7 @@ metadata* parallelExecution(char** arguments, int copies){
          }
          free(meta);
          free(children);
-         perror("Malloc error");
+         fprintf(stderr, "Malloc error\n");
          return NULL;
        }
        strcpy(meta[i].cmd, arguments[0]);
@@ -510,7 +516,7 @@ bool isBuiltIn(char* arg, const int* loc){
   int nb = 9;
   char** built_in = (char**) malloc(sizeof(char*) * nb);
   if(!built_in){
-    perror("Malloc error");
+    fprintf(stderr, "Malloc error\n");
     return false;
   }
   for(int i = 0; i < nb; i++){
@@ -518,7 +524,7 @@ bool isBuiltIn(char* arg, const int* loc){
     if(!built_in[i]){
       for(int j = 0; j < i; j++){ free(built_in[j]); }
       free(built_in);
-      perror("Malloc error");
+      fprintf(stderr, "Malloc error\n");
       return false;
     }
   }
