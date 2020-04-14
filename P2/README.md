@@ -17,6 +17,5 @@ make clean
 ```
 in order to remove useless files.
 
-## To do
-- [X] Implement the 3 news built-in functions
-- [ ] Repare the memory leaks
+## Results
+This part of the project has been marked with an 'A'.

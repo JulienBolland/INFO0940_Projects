@@ -19,5 +19,7 @@ in order to remove useless files.
 
 ## Testing on submission platform
 ```diff
-- Passing 16/20 tests
+- Passing 20/20 tests
 ```
+## Results 
+This part of the project has been marked witn an 'A'.
