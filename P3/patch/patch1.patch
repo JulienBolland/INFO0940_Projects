@@ -1,7 +1,7 @@
 From 49cd0a7cca7d9160d270dd7e1b1263693658b1ea Mon Sep 17 00:00:00 2001
 From: JulienBolland <julien.bolland@student.uliege.be>
 Date: Mon, 13 Apr 2020 22:24:12 +0200
-Subject: [PATCH] Insert KVS functions as syscalls
+Subject: [PATCH 1/2] Insert KVS functions as syscalls
 
 ---
  Makefile                               |  2 +-
@@ -80,6 +80,205 @@ index 0000000..5f9c804
 +asmlinkage long sys_kvs_delete(const char *key, size_t keylen){
 +
 +}
+-- 
+2.7.4
+
+
+From 62d1849f933f2a175dfad5aefb4e0b48cdfeed51 Mon Sep 17 00:00:00 2001
+From: student <julien.bolland@student.uliege.be>
+Date: Wed, 15 Apr 2020 14:12:11 +0200
+Subject: [PATCH 2/2] Add implementations of the KVS functions
+
+---
+ kvs/kvs.c | 168 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 166 insertions(+), 2 deletions(-)
+
+diff --git a/kvs/kvs.c b/kvs/kvs.c
+index 5f9c804..0c8ba9e 100644
+--- a/kvs/kvs.c
++++ b/kvs/kvs.c
+@@ -1,15 +1,179 @@
+ #include <linux/kernel.h>
++#include <linux/list.h>
++#include <linux/slab.h>
++#include <linux/string.h>
++#include <linux/uaccess.h>
++#include <linux/printk.h>
+ 
++// Defining the KVS overall structure
++struct kvs {
++  char *key;
++  char *val;
++  struct list_head list;
++};
++
++// Initialising a list head
++LIST_HEAD(myList);
++
++long check_pointer(const char* ptr, size_t len);
++
++/**********
++ KVS INSERT
++***********/
+ asmlinkage long sys_kvs_insert(const char *key, size_t keylen,
+-			       const char *val, size_t vallen){
++                               const char *val, size_t vallen){
++  struct kvs *my_kvs;
++  long int err = 0; // General error number : 0 for OK and -1 for error
++  if(check_pointer(key, keylen) != 0 || check_pointer(val, vallen) != 0){
++    err = -1;
++    goto leave;
++  }
++  // Allocate memory for the KVS structure
++  my_kvs = kmalloc(sizeof(*my_kvs), GFP_KERNEL);
++  if(!my_kvs){
++    err = -1;
++    goto leave_first;
++  }
++  // Allocate memory for key and val
++  my_kvs->key = kzalloc(sizeof(char)*keylen + 1, GFP_KERNEL);
++  my_kvs->val = kzalloc(sizeof(char)*vallen + 1, GFP_KERNEL);
++  if(!my_kvs->key || !my_kvs->val){
++    err = -1;
++    goto leave;
++  }
++  // Assign the given values to the structure
++  // Check if userspace access was succesful
++  if(strncpy_from_user(my_kvs->key, key, keylen) <= 0 ||
++     strncpy_from_user(my_kvs->val, val, vallen) <= 0){
++    err = -1;
++    goto leave_under_error;
++  }
++  list_add(&my_kvs->list, &myList);
++  printk("IN INSERT\n");
++  printk("The new key is : %s\n", my_kvs->key);
++  printk("The new val is : %s\n", my_kvs->val);
++  goto leave;
+ 
++  leave_under_error:
++    if(my_kvs->key)
++      kfree(my_kvs->key);
++    if(my_kvs->val)
++      kfree(my_kvs->val);
++  leave_first:
++    if(my_kvs)
++      kfree(my_kvs);
++  leave:
++    return err;
+ }
+ 
++
++/**********
++ KVS SEARCH
++***********/
+ asmlinkage long sys_kvs_search(const char *key, size_t keylen,
+-                               char *val, size_t vallen){
++                               char *val, size_t max_vallen){
+ 
++  long int err = 0; // 0 if no match, 1 if match and -1 if other error
++  // No kmalloc because it will contain the real list entry already kmalloc'd
++  struct kvs *my_kvs = NULL;
++  struct list_head *pos = NULL;
++  char *key_checker = NULL;
++  if(check_pointer(key, keylen) != 0){
++   return -1;
++  }
++  // Allocate memory
++  key_checker = kzalloc(sizeof(char)*keylen + 1, GFP_KERNEL);
++  if(!key_checker){
++    err = -1;
++    goto leave;
++  }
++  // Temporary variable that will be use for comparisons
++  if(strncpy_from_user(key_checker, key, keylen) <= 0){
++    err = -1;
++    goto leave;
++  }
++  printk("IN SEARCH\n");
++  printk("Key_checker is now : %s\n", key_checker);
++  // Check all elements of the list
++  list_for_each(pos, &myList){
++    my_kvs = list_entry(pos, struct kvs, list);
++    printk("Current key : %s\n", my_kvs->key);
++    // If the given key matches the element's key
++    if(strcmp(my_kvs->key, key_checker) == 0){
++      if(copy_to_user(val, my_kvs->val, max_vallen) != 0)
++        err = -1;
++      else
++        err = 1;
++      goto leave;
++    }
++  }
++  leave:
++    if(key_checker)
++      kfree(key_checker);
++  return err;
+ }
+ 
++/**********
++ KVS DELETE
++***********/
+ asmlinkage long sys_kvs_delete(const char *key, size_t keylen){
+ 
++  long int err = 0; // 0 if success, -1 if other error
++  // No kmalloc because it will contain the real list entry already kmalloc'd
++  struct kvs *my_kvs = NULL;
++  struct list_head *pos = NULL;
++  struct list_head *temp = NULL;
++  char *key_checker = NULL;
++  if(check_pointer(key, keylen) != 0){
++    return -1;
++  }
++  // Allocate memory
++  key_checker = kzalloc(keylen + 1, GFP_KERNEL);
++  if(!key_checker){
++    err = -1;
++    goto leave;
++  }
++  // Temporary variable that will be use for comparisons
++  if(strncpy_from_user(key_checker, key, keylen) <= 0){
++    err = -1;
++    goto leave;
++  }
++  printk("IN DELETE\n");
++  printk("The key to delete is : %s\n", key_checker);
++  // Check all elements of the list
++  list_for_each_safe(pos, temp, &myList){
++    my_kvs = list_entry(pos, struct kvs, list);
++    // If the given key matches the element's key
++    if(strcmp(my_kvs->key, key_checker) == 0){
++      printk("Ok let's delete %s\n", my_kvs->key);
++      list_del(pos); // Delete the list
++      kfree(my_kvs); // Free the KVS from memory
++      goto leave;
++    }
++  }
++  leave:
++    if(key_checker)
++      kfree(key_checker);
++  return err;
++}
++
++/****************************
++        CHECK POINTER
++ ****************************
++ Checks if a pointer is valid
++*****************************/
++long check_pointer(const char* ptr, size_t len){
++  long err = 0;
++  char *check = kzalloc(len, GFP_KERNEL);
++  if(!check){
++    err = -1;
++    goto leave;
++  }
++  // If the pointer is not valid
++  if(len == 0 || strncpy_from_user(check, ptr, len) <= 0){
++    err = -1;
++  }
++  kfree(check);
++  leave:
++    return err;
+ }
 -- 
 2.7.4
 
