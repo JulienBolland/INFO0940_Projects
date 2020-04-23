@@ -16,10 +16,12 @@ calls of the Linux kernel.
 The complete assignment can be found [here](https://github.com/JulienBolland/INFO0940_Projects/blob/master/P2/project2OS.pdf).
 
 ## Project 3 - Adding system calls to the Linux kernel
-In this project, students were asked to add 3 different system calls to a Linux kernel. These system calls follows the implementation
-of KVS (Key-Value-Store). 
+In this project, students were asked to add 3 different system calls to a Linux kernel. These system calls follow the implementation
+of the KVS structures (Key-Value-Store). 
 
 The complete assigment can be found [here](https://github.com/JulienBolland/INFO0940_Projects/blob/master/P3/project3.pdf).
 
-# Project 4 - ...
-...
+## Project 4 - Drawing fork() implementation
+In this project, students were asked to draw on a diagram the implementation of the fork() system call. 
+
+The complete assignement can be found [here](https://github.com/JulienBolland/INFO0940_Projects/blob/master/P4/slidesProject4.pdf)
