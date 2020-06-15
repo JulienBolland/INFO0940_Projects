@@ -18,4 +18,4 @@ make clean
 in order to remove useless files.
 
 ## Results
-This part of the project has been marked with an 'A'.
+This part of the project has been marked 20 over 20.
