@@ -6,7 +6,7 @@ I am not responsible for the consequences that this project could have on the ma
 
 ## How it works
 This project is designed to be tested on the students' Virtual Machine in order to preserve the Montefiore submission platform from kernel panics. 
-When the components are set up (see Prerequisites), then a git init chould be performed at the root of the file system.
+When the components are set up (see Prerequisites), then a git init should be performed at the root of the file system.
 ```bash
 cd / && git init
 ``` 
