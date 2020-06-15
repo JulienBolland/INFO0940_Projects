@@ -22,4 +22,4 @@ in order to remove useless files.
 - Passing 20/20 tests
 ```
 ## Results 
-This part of the project has been marked witn an 'A'.
+This part of the project has been marked 18 over 20.
