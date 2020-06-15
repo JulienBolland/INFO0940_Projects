@@ -35,5 +35,4 @@ Which will respectively apply the patch, compile the kernel, install kernel modu
 After a reboot a the machine, the system calls can be called in C programs for instance.
 
 ## Results
-
-
+This part of the project has been marked 18 over 20.
